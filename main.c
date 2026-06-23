@@ -13,11 +13,16 @@ void List(Contact addressBook[]);
 void Edit(Contact addressBook[]);
 void Delete(Contact addressBook[]);
 int GetNextSpace(Contact addressBook[]);
+void LoadContacts(Contact addressBook[]);
+void SaveContacts(Contact addressBook[]);
 
 int main(void) {
     printf("Address book starting up.\n");
-    int choice = 0;
+
     Contact addressBook[MAX_CONTACTS] = {0};
+    LoadContacts(addressBook);
+
+    int choice = 0;
 
     while (choice != 5) {
         printf("Select an option:\n 1.Add\n 2.List\n 3.Delete\n 4.Edit\n 5.Exit\n\n");
@@ -47,6 +52,8 @@ int main(void) {
         }
         
     }
+
+    SaveContacts(addressBook);
 
     return 0;
 }
@@ -148,4 +155,54 @@ int GetNextSpace(Contact addressBook[])
     }
 
     return -1;
+}
+
+void LoadContacts(Contact addressBook[])
+{
+    FILE *fp = fopen("contacts.txt", "r");
+    if (fp == NULL)
+    {
+        // No saved data to load
+        return;
+    }
+    
+    char line[256];
+    int i = 0;
+    while (fgets(line, sizeof line, fp) != NULL) {
+        line[strcspn(line, "\n")] = '\0';
+        strncpy(addressBook[i].name, line, 63);
+        addressBook[i].name[63] = '\0';
+
+        i = i + 1;
+    }
+    
+
+    fclose(fp);
+    return;
+}
+
+void SaveContacts(Contact addressBook[])
+{
+    FILE *fp = fopen("contacts.txt", "w");
+    if (fp == NULL)
+    {
+        // error
+        perror("Error opening contacts.txt for save");
+        return;
+    }
+
+    for(int i = 0; i < MAX_CONTACTS; i++)
+    {
+        if (addressBook[i].name[0] != '\0')
+        {
+            if (fprintf(fp, "%s\n", addressBook[i].name) <  0)
+            {
+                perror("Error writing line to contacts.txt");
+                return; 
+            }
+        }
+    }
+
+    fclose(fp);
+    return;
 }
