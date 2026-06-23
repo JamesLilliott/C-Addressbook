@@ -3,6 +3,7 @@
 
 #define MAX_CONTACTS 3
 #define NAME_SIZE 64
+#define SAVE_FILE "contacts.txt"
 
 typedef struct {
     char name[NAME_SIZE];
@@ -159,19 +160,20 @@ int GetNextSpace(Contact addressBook[])
 
 void LoadContacts(Contact addressBook[])
 {
-    FILE *fp = fopen("contacts.txt", "r");
+    FILE *fp = fopen(SAVE_FILE, "r");
     if (fp == NULL)
     {
         // No saved data to load
+        fclose(fp);
         return;
     }
     
-    char line[256];
+    char line[NAME_SIZE];
     int i = 0;
-    while (fgets(line, sizeof line, fp) != NULL) {
+    while (fgets(line, sizeof line, fp) != NULL && i < MAX_CONTACTS) {
         line[strcspn(line, "\n")] = '\0';
-        strncpy(addressBook[i].name, line, 63);
-        addressBook[i].name[63] = '\0';
+        strncpy(addressBook[i].name, line, sizeof line - 1);
+        addressBook[i].name[NAME_SIZE] = '\0';
 
         i = i + 1;
     }
@@ -183,7 +185,7 @@ void LoadContacts(Contact addressBook[])
 
 void SaveContacts(Contact addressBook[])
 {
-    FILE *fp = fopen("contacts.txt", "w");
+    FILE *fp = fopen(SAVE_FILE, "w");
     if (fp == NULL)
     {
         // error
