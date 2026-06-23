@@ -1,7 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#define MAX_CONTACTS 3
 #define NAME_SIZE 64
 #define SAVE_FILE "contacts.txt"
 
@@ -9,19 +9,21 @@ typedef struct {
     char name[NAME_SIZE];
 } Contact;
 
-void Add(Contact addressBook[]);
-void List(Contact addressBook[]);
-void Edit(Contact addressBook[]);
-void Delete(Contact addressBook[]);
-int GetNextSpace(Contact addressBook[]);
-void LoadContacts(Contact addressBook[]);
-void SaveContacts(Contact addressBook[]);
+int Add(Contact addressBook[], int count, int capacity);
+void List(Contact addressBook[], int count);
+void Edit(Contact addressBook[], int count);
+int Delete(Contact addressBook[], int count);
+int LoadContacts(Contact addressBook[], int capacity);
+void SaveContacts(Contact addressBook[], int count);
 
 int main(void) {
     printf("Address book starting up.\n");
 
-    Contact addressBook[MAX_CONTACTS] = {0};
-    LoadContacts(addressBook);
+    int count = 0;
+    int capacity = 4;
+    Contact *addressBook = NULL;
+    addressBook = malloc(capacity * sizeof(Contact));
+    count = LoadContacts(addressBook, capacity);
 
     int choice = 0;
 
@@ -36,38 +38,37 @@ int main(void) {
 
         switch (choice) {
             case 1:
-                Add(addressBook);
+                count = Add(addressBook, count, capacity);
                 break;
 
             case 2:
-                List(addressBook);
+                List(addressBook, count);
                 break;
 
             case 3:
-                Delete(addressBook);
+                count = Delete(addressBook, count);
                 break;
 
             case 4:
-                Edit(addressBook);
+                Edit(addressBook, count);
                 break;
         }
         
     }
 
-    SaveContacts(addressBook);
+    SaveContacts(addressBook, count);
 
     return 0;
 }
 
-void Add(Contact addressBook[]) 
+int Add(Contact addressBook[], int count, int capacity) 
 {
     char name[NAME_SIZE];
-    int nextSpace = GetNextSpace(addressBook);
 
-    if (nextSpace == -1)
+    if (count == capacity)
     {
         printf("Address book is full.\n");
-        return;
+        return count;
     }
 
     printf("Input name:\n");
@@ -76,16 +77,16 @@ void Add(Contact addressBook[])
     Contact c = { 0 };
     strncpy(c.name, name, sizeof(c.name) -1);
 
-    addressBook[nextSpace] = c;
+    addressBook[count] = c;
 
-    return;
+    return count + 1;
 }
 
-void List(Contact addressBook[])
+void List(Contact addressBook[], int count)
 {
     printf("Contacts:\n");
 
-    for(int i = 0; i < MAX_CONTACTS; i++)
+    for(int i = 0; i < count; i++)
     {
         if (addressBook[i].name[0] != '\0')
         {
@@ -96,7 +97,7 @@ void List(Contact addressBook[])
     return;
 }
 
-void Edit(Contact addressBook[])
+void Edit(Contact addressBook[], int count)
 {
     int index = 0;
     char name[NAME_SIZE];
@@ -106,7 +107,7 @@ void Edit(Contact addressBook[])
 
     index = index -1;
 
-    if (index < 0 || index >= MAX_CONTACTS || addressBook[index].name[0] == '\0')
+    if (index < 0 || index >= count || addressBook[index].name[0] == '\0')
     {
         printf("Invalid index.\n");
         return;
@@ -123,7 +124,7 @@ void Edit(Contact addressBook[])
     return;
 }
 
-void Delete(Contact addressBook[])
+int Delete(Contact addressBook[], int count)
 {
     int index = 0;
 
@@ -132,59 +133,55 @@ void Delete(Contact addressBook[])
 
     index = index -1;
 
-    if (index < 0 || index >= MAX_CONTACTS || addressBook[index].name[0] == '\0')
+    if (index < 0 || index > count || addressBook[index].name[0] == '\0')
     {
         printf("Invalid index.\n");
-        return;
+        return count;
     }
     
     printf("%s has been removed.\n", addressBook[index].name);
 
     addressBook[index].name[0] = '\0';
-
-    return;
-}
-
-int GetNextSpace(Contact addressBook[])
-{
-    for(int i = 0; i < MAX_CONTACTS; i++)
+    for (int i = index; i > count; i++)
     {
-        if (addressBook[i].name[0] == '\0')
-        {
-            return i;
-        }
+        addressBook[i] = addressBook[i + 1];
     }
 
-    return -1;
+    count = count - 1;
+
+    return count;
 }
 
-void LoadContacts(Contact addressBook[])
+int LoadContacts(Contact addressBook[], int capacity)
 {
     FILE *fp = fopen(SAVE_FILE, "r");
     if (fp == NULL)
     {
+        printf("No save file to read\n");
         // No saved data to load
         fclose(fp);
-        return;
+        return 0;
     }
-    
+
     char line[NAME_SIZE];
     int i = 0;
-    while (fgets(line, sizeof line, fp) != NULL && i < MAX_CONTACTS) {
+    
+    while (fgets(line, sizeof line, fp) != NULL && i < capacity) {
+        printf("reading a line\n");
+        printf("%d,%d\n", i, capacity);
         line[strcspn(line, "\n")] = '\0';
         strncpy(addressBook[i].name, line, sizeof line - 1);
-        addressBook[i].name[NAME_SIZE] = '\0';
 
         i = i + 1;
     }
-    
 
     fclose(fp);
-    return;
+    return i;
 }
 
-void SaveContacts(Contact addressBook[])
+void SaveContacts(Contact addressBook[], int count)
 {
+    return;
     FILE *fp = fopen(SAVE_FILE, "w");
     if (fp == NULL)
     {
@@ -193,7 +190,7 @@ void SaveContacts(Contact addressBook[])
         return;
     }
 
-    for(int i = 0; i < MAX_CONTACTS; i++)
+    for(int i = 0; i < count; i++)
     {
         if (addressBook[i].name[0] != '\0')
         {
