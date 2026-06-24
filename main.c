@@ -12,7 +12,7 @@ typedef struct {
 int Add(Contact *addressBook, int count, int capacity);
 void List(Contact *addressBook, int count);
 void Edit(Contact *addressBook, int count);
-int Delete(Contact *addressBook, int count);
+int Delete(Contact *addressBook, int count, int capacity);
 int LoadContacts(Contact *addressBook, int capacity);
 void SaveContacts(Contact *addressBook, int count);
 int ResizeAddressbook(Contact **addressBook, int capacity);
@@ -53,7 +53,7 @@ int main(void) {
                 break;
 
             case 3:
-                count = Delete(addressBook, count);
+                count = Delete(addressBook, count, capacity);
                 break;
 
             case 4:
@@ -132,7 +132,7 @@ void Edit(Contact *addressBook, int count)
     return;
 }
 
-int Delete(Contact *addressBook, int count)
+int Delete(Contact *addressBook, int count, int capacity)
 {
     int index = 0;
 
@@ -148,11 +148,17 @@ int Delete(Contact *addressBook, int count)
     }
     
     printf("%s has been removed.\n", addressBook[index].name);
-
-    addressBook[index].name[0] = '\0';
-    for (int i = index; i > count; i++)
+    
+    while (index < count)
     {
-        addressBook[i] = addressBook[i + 1];
+        if (index == capacity)
+        {
+            addressBook[index].name[0] = '\0';
+        } else {
+            addressBook[index] = addressBook[index + 1];
+        }
+        
+        index = index + 1;
     }
 
     count = count - 1;
