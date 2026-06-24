@@ -58,6 +58,7 @@ int main(void) {
 
     SaveContacts(addressBook, count);
 
+    free(addressBook);
     return 0;
 }
 
@@ -159,7 +160,6 @@ int LoadContacts(Contact addressBook[], int capacity)
     {
         printf("No save file to read\n");
         // No saved data to load
-        fclose(fp);
         return 0;
     }
 
