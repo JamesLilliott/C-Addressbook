@@ -9,12 +9,13 @@ typedef struct {
     char name[NAME_SIZE];
 } Contact;
 
-int Add(Contact addressBook[], int count, int capacity);
-void List(Contact addressBook[], int count);
-void Edit(Contact addressBook[], int count);
-int Delete(Contact addressBook[], int count);
-int LoadContacts(Contact addressBook[], int capacity);
-void SaveContacts(Contact addressBook[], int count);
+int Add(Contact *addressBook, int count, int capacity);
+void List(Contact *addressBook, int count);
+void Edit(Contact *addressBook, int count);
+int Delete(Contact *addressBook, int count);
+int LoadContacts(Contact *addressBook, int capacity);
+void SaveContacts(Contact *addressBook, int count);
+int ResizeAddressbook(Contact **addressBook, int capacity);
 
 int main(void) {
     printf("Address book starting up.\n");
@@ -28,6 +29,12 @@ int main(void) {
     int choice = 0;
 
     while (choice != 5) {
+        printf("Cap check %d of %d", count, capacity);
+        if (count == capacity)
+        {
+            capacity = ResizeAddressbook(&addressBook, capacity);
+        }
+        
         printf("Select an option:\n 1.Add\n 2.List\n 3.Delete\n 4.Edit\n 5.Exit\n\n");
         
         if (scanf("%d", &choice) != 1) {
@@ -62,7 +69,7 @@ int main(void) {
     return 0;
 }
 
-int Add(Contact addressBook[], int count, int capacity) 
+int Add(Contact *addressBook, int count, int capacity) 
 {
     char name[NAME_SIZE];
 
@@ -83,7 +90,7 @@ int Add(Contact addressBook[], int count, int capacity)
     return count + 1;
 }
 
-void List(Contact addressBook[], int count)
+void List(Contact *addressBook, int count)
 {
     printf("Contacts:\n");
 
@@ -98,7 +105,7 @@ void List(Contact addressBook[], int count)
     return;
 }
 
-void Edit(Contact addressBook[], int count)
+void Edit(Contact *addressBook, int count)
 {
     int index = 0;
     char name[NAME_SIZE];
@@ -125,7 +132,7 @@ void Edit(Contact addressBook[], int count)
     return;
 }
 
-int Delete(Contact addressBook[], int count)
+int Delete(Contact *addressBook, int count)
 {
     int index = 0;
 
@@ -153,7 +160,7 @@ int Delete(Contact addressBook[], int count)
     return count;
 }
 
-int LoadContacts(Contact addressBook[], int capacity)
+int LoadContacts(Contact *addressBook, int capacity)
 {
     FILE *fp = fopen(SAVE_FILE, "r");
     if (fp == NULL)
@@ -179,9 +186,8 @@ int LoadContacts(Contact addressBook[], int capacity)
     return i;
 }
 
-void SaveContacts(Contact addressBook[], int count)
+void SaveContacts(Contact *addressBook, int count)
 {
-    return;
     FILE *fp = fopen(SAVE_FILE, "w");
     if (fp == NULL)
     {
@@ -204,4 +210,18 @@ void SaveContacts(Contact addressBook[], int count)
 
     fclose(fp);
     return;
+}
+
+int ResizeAddressbook(Contact **addressBook, int capacity)
+{
+    printf("Resizing from %d to %d", capacity, capacity*2);
+    Contact *tmp = realloc(*addressBook, (capacity*2) * sizeof(Contact));
+    if (tmp == NULL)
+    {
+        perror("Unable to allocate more memory");
+        return capacity;
+    }
+
+    *addressBook = tmp;
+    return (capacity*2);
 }
