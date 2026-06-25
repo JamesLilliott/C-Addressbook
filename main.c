@@ -1,12 +1,11 @@
 // TODO
 // Move scanf to fgets?
-// Update save/load to write to multi lines (line per field)
-
 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define NAME_SIZE 64
 #define NUMBER_SIZE 15
@@ -258,15 +257,66 @@ int LoadContacts(Contact *addressBook, int capacity)
         return 0;
     }
 
-    char line[NAME_SIZE];
     int i = 0;
-    
-    while (fgets(line, sizeof line, fp) != NULL && i < capacity) {
-        line[strcspn(line, "\n")] = '\0';
-        strncpy(addressBook[i].name, line, sizeof line - 1);
+    int field = 1;
+    bool endOfFile = false;
 
-        i = i + 1;
+    while (!endOfFile || i < capacity)
+    {
+        if (field == 1)
+        {
+            char name[NAME_SIZE];
+            if (fgets(name, sizeof(name), fp) == NULL)
+            {
+                endOfFile = true;
+                break;
+            }
+
+            name[strcspn(name, "\n")] = '\0';
+            strncpy(addressBook[i].name, name, sizeof name - 1);
+            
+            field = 2;
+        }
+
+        if (field == 2)
+        {
+            char number[NUMBER_SIZE];
+            if (fgets(number, sizeof(number), fp) == NULL)
+            {
+                endOfFile = true;
+                break;
+            }
+
+            number[strcspn(number, "\n")] = '\0';
+            strncpy(addressBook[i].number, number, sizeof number - 1);
+            
+            field = 3;
+        }
+
+        if (field == 3)
+        {
+            char address[ADDRESS_SIZE];
+            if (fgets(address, sizeof(address), fp) == NULL)
+            {
+                endOfFile = true;
+                break;
+            }
+
+            address[strcspn(address, "\n")] = '\0';
+            strncpy(addressBook[i].address, address, sizeof address - 1);
+            
+            field = 1;
+            i = i +1;
+        }
     }
+    
+    
+    // while (fgets(line, sizeof line, fp) != NULL && i < capacity) {
+    //     line[strcspn(line, "\n")] = '\0';
+    //     strncpy(addressBook[i].name, line, sizeof line - 1);
+
+    //     i = i + 1;
+    // }
 
     fclose(fp);
     return i;
@@ -288,7 +338,17 @@ void SaveContacts(Contact *addressBook, int count)
         {
             if (fprintf(fp, "%s\n", addressBook[i].name) <  0)
             {
-                perror("Error writing line to contacts.txt");
+                perror("Error writing name to contacts.txt");
+                return; 
+            }
+            if (fprintf(fp, "%s\n", addressBook[i].number) <  0)
+            {
+                perror("Error writing number to contacts.txt");
+                return; 
+            }
+            if (fprintf(fp, "%s\n", addressBook[i].address) <  0)
+            {
+                perror("Error writing address to contacts.txt");
                 return; 
             }
         }
