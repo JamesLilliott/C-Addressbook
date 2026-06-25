@@ -1,12 +1,22 @@
+// TODO
+// Move scanf to fgets?
+// Update save/load to write to multi lines (line per field)
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define NAME_SIZE 64
+#define NUMBER_SIZE 15
+#define ADDRESS_SIZE 256
 #define SAVE_FILE "contacts.txt"
 
 typedef struct {
     char name[NAME_SIZE];
+    char number[NUMBER_SIZE];
+    char address[ADDRESS_SIZE];
 } Contact;
 
 int Add(Contact *addressBook, int count, int capacity);
@@ -35,7 +45,6 @@ int main(void) {
     int choice = 0;
 
     while (choice != 5) {
-        printf("Cap check %d of %d", count, capacity);
         if (count == capacity)
         {
             capacity = ResizeAddressbook(&addressBook, capacity);
@@ -44,10 +53,10 @@ int main(void) {
         printf("Select an option:\n 1.Add\n 2.List\n 3.Delete\n 4.Edit\n 5.Exit\n\n");
         
         if (scanf("%d", &choice) != 1) {
-            while (getchar() != '\n');   // discard the rest of the bad line
             printf("Please enter a number.\n");
             continue;
         }
+        while (getchar() != '\n');
 
         switch (choice) {
             case 1:
@@ -78,6 +87,8 @@ int main(void) {
 int Add(Contact *addressBook, int count, int capacity) 
 {
     char name[NAME_SIZE];
+    char number[NUMBER_SIZE];
+    char address[ADDRESS_SIZE];
 
     if (count == capacity)
     {
@@ -86,10 +97,22 @@ int Add(Contact *addressBook, int count, int capacity)
     }
 
     printf("Input name:\n");
-    scanf("%63s", name);
+    fgets(name, sizeof(name), stdin);
+    name[strcspn(name, "\n")] = '\0';
+
+    printf("Input number:\n");
+    fgets(number, sizeof(number), stdin);
+    number[strcspn(number, "\n")] = '\0';
+
+    printf("Input address:\n");
+    fgets(address, sizeof(address), stdin);
+    address[strcspn(address, "\n")] = '\0';
 
     Contact c = { 0 };
     strncpy(c.name, name, sizeof(c.name) -1);
+    strncpy(c.number, number, sizeof(c.number) -1);
+    strncpy(c.address, address, sizeof(c.address) -1);
+    printf("DEBUG stored: name=[%s] number=[%s] address=[%s]\n", c.name, c.number, c.address);
 
     addressBook[count] = c;
 
@@ -98,13 +121,15 @@ int Add(Contact *addressBook, int count, int capacity)
 
 void List(Contact *addressBook, int count)
 {
-    printf("Contacts:\n");
-
     for(int i = 0; i < count; i++)
     {
         if (addressBook[i].name[0] != '\0')
         {
-            printf("%d: %s\n", i+1, addressBook[i].name);
+            printf("====================\n");
+            printf("Contact: %d\n", i+1);
+            printf("Name: %s\n", addressBook[i].name);
+            printf("Number: %s\n", addressBook[i].number);
+            printf("Address: %s\n", addressBook[i].address);
         }
     }
 
@@ -114,10 +139,11 @@ void List(Contact *addressBook, int count)
 void Edit(Contact *addressBook, int count)
 {
     int index = 0;
-    char name[NAME_SIZE];
+    int field = 0;
 
     printf("Input the index for the contact you wish to edit.\n");
     scanf("%d", &index);
+    while (getchar() != '\n');
 
     index = index -1;
 
@@ -128,13 +154,62 @@ void Edit(Contact *addressBook, int count)
     }
 
     printf("You have selected %s.\n", addressBook[index].name);
-    printf("Input new name.\n");
 
-    scanf("%63s", name);
+    printf("Which field do you want to edit?.\n");
+    printf("1. Name\n");
+    printf("2. Number\n");
+    printf("3. Address\n");
 
-    strncpy(addressBook[index].name, name, sizeof(addressBook[index].name)-1);
+    scanf("%d", &field);
+    while (getchar() != '\n');
 
-    printf("Name updated to %s.\n", addressBook[index].name);
+    if (field > 3 || field < 1)
+    {
+        printf("Invalid field");
+        return;
+    }
+
+    // NAME
+    if (field == 1)
+    {
+        char name[NAME_SIZE];
+
+        printf("Please input a new name\n");
+        fgets(name, sizeof(name), stdin);
+
+        strncpy(addressBook[index].name, name, sizeof(addressBook[index].name)-1);
+
+        printf("Name updated to %s.\n", addressBook[index].name);
+    }
+
+    // NUMBER
+    if (field == 2)
+    {
+        char number[NUMBER_SIZE];
+    
+        printf("Please input a new number\n");
+        fgets(number, sizeof(number), stdin);
+
+        strncpy(addressBook[index].number, number, sizeof(addressBook[index].number)-1);
+
+        printf("Number updated to %s.\n", addressBook[index].number);
+    }
+
+    // ADDRESS
+    if (field == 3)
+    {
+        char address[ADDRESS_SIZE];
+
+        printf("Please input a new address\n");
+        
+        fgets(address, sizeof(address), stdin);
+
+        strncpy(addressBook[index].address, address, sizeof(addressBook[index].address)-1);
+
+        printf("Address updated to %s.\n", addressBook[index].address);
+    }
+    
+    
     return;
 }
 
@@ -144,6 +219,7 @@ int Delete(Contact *addressBook, int count, int capacity)
 
     printf("Input the index for the contact you wish to delete.\n");
     scanf("%d", &index);
+    while (getchar() != '\n');
 
     index = index -1;
 
