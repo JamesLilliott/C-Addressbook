@@ -24,6 +24,12 @@ int main(void) {
     int capacity = 4;
     Contact *addressBook = NULL;
     addressBook = malloc(capacity * sizeof(Contact));
+    if (addressBook == NULL)
+    {
+        perror("Unable to allocate memory");
+        return 1;
+    }
+    
     count = LoadContacts(addressBook, capacity);
 
     int choice = 0;
@@ -180,8 +186,6 @@ int LoadContacts(Contact *addressBook, int capacity)
     int i = 0;
     
     while (fgets(line, sizeof line, fp) != NULL && i < capacity) {
-        printf("reading a line\n");
-        printf("%d,%d\n", i, capacity);
         line[strcspn(line, "\n")] = '\0';
         strncpy(addressBook[i].name, line, sizeof line - 1);
 
@@ -220,7 +224,6 @@ void SaveContacts(Contact *addressBook, int count)
 
 int ResizeAddressbook(Contact **addressBook, int capacity)
 {
-    printf("Resizing from %d to %d", capacity, capacity*2);
     Contact *tmp = realloc(*addressBook, (capacity*2) * sizeof(Contact));
     if (tmp == NULL)
     {
